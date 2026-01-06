@@ -1,0 +1,315 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LoaiNhanVien {
+  TiepNhan
+  ThuNgan
+  HoTro
+  QuanLyNoiTru
+  BacSi
+  BanGiamDoc
+  DichVu
+}
+
+enum TrinhDoBacSi {
+  ChuyenKhoaI
+  ChuyenKhoaII
+  ThacSi
+  TienSi
+  PhoGiaoSu
+  GiaoSu
+}
+
+enum BuoiKham {
+  Sang
+  Chieu
+}
+
+enum TrangThaiLich {
+  Pending
+  Accept
+  Cancel
+  Done
+}
+
+enum TrangThaiHoaDon {
+  Pending
+  Done
+}
+
+enum LoaiHoaDon {
+  NhapVien
+  XuatVien
+  DichVu
+  KhamBenh
+  ToaThuoc
+}
+
+enum LoaiPhieu {
+  NhapVien
+  XuatVien
+  DichVu
+  KhamBenh
+}
+
+enum TrangThaiPhieu {
+  Pending
+  Payed
+  Done
+}
+
+enum TrangThaiThuoc {
+  Pending
+  Payed
+  Done
+}
+
+enum LoaiPhong {
+  PhongDon
+  PhongDoi
+  PhongBon
+}
+
+enum DonViTinh {
+  VIEN
+  ONG
+  CHAI
+  LO
+  TUYP
+  ML
+  G
+  MCG
+  VY
+}
+
+enum DonViDongGoi {
+  HOP
+  HOP_VI
+  HOP_ONG
+  THUNG
+  CHAI_LO
+  GOI
+}
+
+enum DangBaoChe {
+  VIEN_NEN
+  VIEN_NANG
+  DUNG_DICH
+  BOT_PHA_TIEM
+  THUOC_TIEU_KHONG
+  DICH_TRUYEN
+  SIRUP
+  DUNG_DICH_SAT_TRUNG
+  THUOC_BOI
+  XI_DANG
+  VIEN_NGAM
+}
+
+enum PhuongThucThanhToan {
+  TienMat
+  MoMo
+}
+
+enum TrangThaiThanhToanMoMo {
+  Pending
+  Success
+  Failed
+  Cancelled
+  Expired
+}
+
+model NhanVien {
+  MaNV         String      @id @default(uuid())
+  HoTen        String
+  NgaySinh     DateTime
+  SDT          String      @unique
+  Matkhau      String
+  RefreshToken String?  @unique
+  DiaChi       String
+  Luong        Decimal
+  LoaiNV       LoaiNhanVien
+  TrinhDo      TrinhDoBacSi?
+  LaTruongKhoa Boolean?
+  MaKhoa       Khoa?       @relation(fields: [MaKhoaId], references: [MaKhoa])
+  MaKhoaId     String?
+  HoSoBenhAn   HoSoBenhAn[]
+  Lich         Lich[]
+  HoaDon       HoaDon[]
+  Phieu        Phieu[]
+  PhongBenh    PhongBenh[]
+}
+
+model Khoa {
+  MaKhoa     String     @id @default(uuid())
+  TenKhoa    String   @unique
+  MoTa       String
+  NhanVien   NhanVien[]
+}
+
+model Lich {
+  MaLich      String        @id @default(uuid())
+  SoBNHienTai Int
+  SoBNToiDa   Int
+  Ngay        DateTime
+  Buoi        BuoiKham
+  Gia         Decimal
+  MaNV        String
+  NhanVien    NhanVien      @relation(fields: [MaNV], references: [MaNV])
+  ChiTietLich ChiTietLich[]
+}
+
+model ChiTietLich {
+  MaLich     String
+  MaBN       String
+  NgayDat    DateTime
+  DonGia     Decimal
+  TrangThai  TrangThaiLich
+  Lich       Lich       @relation(fields: [MaLich], references: [MaLich])
+  BenhNhan   BenhNhan   @relation(fields: [MaBN], references: [MaBN])
+
+  @@id([MaLich, MaBN])
+}
+
+model BenhNhan {
+  MaBN           String   @id @default(uuid())
+  HoTen          String
+  CCCD           String              @unique
+  Matkhau        String
+  RefreshToken   String?             @unique
+  SDT            String        @unique
+  DiaChi         String
+  MaPhongBenhId  String?
+  PhongBenh      PhongBenh?       @relation(fields: [MaPhongBenhId], references: [MaPhong])
+  ChiTietLich    ChiTietLich[]
+  HoaDon         HoaDon[]
+  Phieu          Phieu[]
+  HoSoBenhAn     HoSoBenhAn[]
+  ToaThuoc       ToaThuoc[]
+}
+
+model HoaDon {
+  MaHD                String               @id @default(uuid())
+  NgayTao             DateTime
+  TongTien            Decimal
+  TrangThai           TrangThaiHoaDon
+  LoaiHoaDon          LoaiHoaDon
+  PhuongThucThanhToan PhuongThucThanhToan
+  MaBN                String
+  MaNV                String?
+  BenhNhan            BenhNhan             @relation(fields: [MaBN], references: [MaBN])
+  NhanVien            NhanVien?            @relation(fields: [MaNV], references: [MaNV])
+  ThanhToanMoMo       ThanhToanMoMo[]
+}
+
+model Phieu {
+  MaPYC     String   @id @default(uuid())
+  NgayYeuCau DateTime
+  DonGia     Decimal
+  Loai       LoaiPhieu
+  MaNV       String
+  MaBN       String
+  MaDichVu   String?
+  TrangThai  TrangThaiPhieu
+
+  NhanVien   NhanVien    @relation(fields: [MaNV], references: [MaNV])
+  BenhNhan   BenhNhan    @relation(fields: [MaBN], references: [MaBN])
+  DichVu     DichVu?     @relation(fields: [MaDichVu], references: [MaDichVu])
+}
+
+model DichVu {
+  MaDichVu   String   @id @default(uuid())
+  TenDichVu  String
+  GiaDichVu  Decimal
+  Phieu      Phieu[]
+}
+
+model PhongBenh {
+  MaPhong      String   @id @default(uuid())
+  TenPhong      String
+  SoBNHienTai   Int
+  SoBNToiDa     Int
+  LoaiPhong     LoaiPhong
+  MaNV          String
+  NhanVien      NhanVien  @relation(fields: [MaNV], references: [MaNV])
+  BenhNhan      BenhNhan[]
+}
+
+model HoSoBenhAn {
+  MaHSBA     String   @id @default(uuid())
+  TrieuChung String
+  ChanDoan   String
+  NgayKham   DateTime?
+  MaBN       String
+  MaNV       String
+  NhanVien   NhanVien   @relation(fields: [MaNV], references: [MaNV])
+  BenhNhan   BenhNhan   @relation(fields: [MaBN], references: [MaBN])
+}
+
+model Thuoc {
+  MaThuoc         String   @id @default(uuid())
+  TenThuoc        String
+  BHYT            Boolean
+  Gia             Decimal
+  DonViTinh       DonViTinh
+  DonViDongGoi    DonViDongGoi
+  DangBaoChe      DangBaoChe
+  HamLuong        String
+  SoLuongDongGoi  Int
+  ChiTietToaThuoc ChiTietToaThuoc[]
+}
+
+model ToaThuoc {
+  MaToaThuoc       String   @id @default(uuid())
+  NgayKe           DateTime
+  TrangThai        TrangThaiThuoc
+  MaBN             String
+  BenhNhan         BenhNhan           @relation(fields: [MaBN], references: [MaBN])
+  ChiTietToaThuoc  ChiTietToaThuoc[]
+}
+
+model ChiTietToaThuoc {
+  MaThuoc    String
+  MaToaThuoc String
+  SoLuong    Int
+  LieuLuong  String
+  DonGia     Decimal
+
+  Thuoc      Thuoc      @relation(fields: [MaThuoc], references: [MaThuoc])
+  ToaThuoc   ToaThuoc   @relation(fields: [MaToaThuoc], references: [MaToaThuoc])
+
+  @@id([MaThuoc, MaToaThuoc])
+}
+
+model ThanhToanMoMo {
+  MaGiaoDich       String   @id @default(uuid())
+  OrderId          String   @unique
+  RequestId        String   @unique
+  PartnerCode      String
+  Amount           Decimal
+  OrderInfo        String
+  RedirectUrl      String?
+  IpnUrl          String?
+  ExtraData       String?
+  Signature       String
+  PayUrl          String?
+  DeepLink        String?
+  QrCodeUrl       String?
+  TrangThai       TrangThaiThanhToanMoMo @default(Pending)
+  NgayTao         DateTime @default(now())
+  NgayCapNhat     DateTime @updatedAt
+  MoMoTransId     String?
+  PayType         String?
+  ResponseTime    DateTime?
+  Message         String?
+  ResultCode      String?
+  
+  // Relations
+  MaHD            String?
+  HoaDon          HoaDon?  @relation(fields: [MaHD], references: [MaHD])
+}

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "PhongBenh" ADD COLUMN     "GiaPhong" DOUBLE PRECISION NOT NULL DEFAULT 0;
